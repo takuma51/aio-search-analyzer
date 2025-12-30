@@ -1,48 +1,57 @@
 import os
-from serpapi import GoogleSearch
+import datetime
 import pandas as pd
+from serpapi import GoogleSearch
 
 def main():
-    # GitHub Secretsから鍵を取り出す
     api_key = os.getenv("SERPAPI_KEY")
-    
     if not api_key:
-        print("Error: API Keyが見つかりません。GitHub Secretsを設定してください。")
+        print("Error: API Keyが見つかりません。")
         return
 
-    print("Google検索を開始します...")
+    keyword = "Technical SEO"
+    print(f"検索キーワード: {keyword} のデータを取得中...")
 
-    # 検索パラメータの設定
     params = {
         "engine": "google",
-        "q": "Technical SEO",  # 検索したいキーワード
-        "gl": "us",            # 国: アメリカ (AIOの分析ならUSが面白い)
-        "hl": "en",            # 言語: 英語
+        "q": keyword,
+        "gl": "us",
+        "hl": "en",
         "api_key": api_key
     }
 
-    # 検索実行
     search = GoogleSearch(params)
     results = search.get_dict()
     organic_results = results.get("organic_results", [])
 
-    # データを整理して表示
-    print(f"\n検索キーワード: {params['q']}")
-    print("-" * 50)
-    
-    data = []
-    for result in organic_results[:5]: # 上位5件だけ表示
-        title = result.get("title")
-        link = result.get("link")
-        position = result.get("position")
-        
-        print(f"{position}位: {title}")
-        print(f"URL: {link}\n")
-        
-        data.append({"rank": position, "title": title, "url": link})
+    # データをリストにまとめる
+    data_list = []
+    today = datetime.date.today()
 
-    print("-" * 50)
-    print("✅ 分析完了！このデータを保存・分析して記事に使います。")
+    for result in organic_results[:10]: # 上位10件取得
+        item = {
+            "date": today,
+            "rank": result.get("position"),
+            "title": result.get("title"),
+            "url": result.get("link"),
+            "snippet": result.get("snippet")
+        }
+        data_list.append(item)
+
+    # DataFrame（表形式）に変換
+    df = pd.DataFrame(data_list)
+
+    # CSVファイルに保存（追記モード）
+    csv_filename = "seo_data.csv"
+    
+    if os.path.exists(csv_filename):
+        # ファイルがすでにある場合は、ヘッダーなしで追記
+        df.to_csv(csv_filename, mode='a', header=False, index=False)
+        print(f"既存の {csv_filename} にデータを追記しました。")
+    else:
+        # 初回はヘッダー付きで新規作成
+        df.to_csv(csv_filename, mode='w', header=True, index=False)
+        print(f"新しく {csv_filename} を作成しました。")
 
 if __name__ == "__main__":
     main()
