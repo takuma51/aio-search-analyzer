@@ -1,0 +1,28 @@
+name: Daily SEO Analysis
+
+# トリガー設定：いつ実行するか
+on:
+  workflow_dispatch: # 手動実行ボタンを表示する設定
+  # schedule:
+  #   - cron: '0 0 * * *' # 毎日深夜0時(UTC)に実行したい場合はコメントアウトを外す
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # 実行環境（Linux）
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 # リポジトリのコードを取得
+
+      - name: Set up Python
+        uses: actions/setup-python@v4 # Python環境をセットアップ
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # もし必要なライブラリがあればここに書く (例: pip install requests)
+
+      - name: Run analysis script
+        run: python main.py # main.pyを実行
