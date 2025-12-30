@@ -2,8 +2,8 @@ name: Daily SEO Analysis
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: '0 0 * * *' # 毎日自動実行したい場合はここを有効化
+  schedule:
+  - cron: '0 0 * * *' # 毎日自動実行したい場合はここを有効化
 
 jobs:
   build:
