@@ -2,10 +2,16 @@ name: Daily SEO Analysis
 
 on:
   workflow_dispatch:
+  # schedule:
+  #   - cron: '0 0 * * *' # 毎日自動実行したい場合はここを有効化
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    # 【重要】リポジトリに書き込む権限を与える
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -22,6 +28,16 @@ jobs:
           pip install google-search-results pandas
 
       - name: Run analysis script
-        env: 
-          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}  # ここで金庫の鍵を取り出しています
+        env:
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
         run: python main.py
+
+      # 【追加】生成されたCSVをGitHubに保存するステップ
+      - name: Commit and Push Data
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add seo_data.csv
+          
+          # 変更がある場合のみコミットする（エラー回避）
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update SEO data [skip ci]" && git push)
